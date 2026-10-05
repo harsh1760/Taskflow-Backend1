@@ -1,0 +1,92 @@
+{
+  "info": {
+    "name": "Task Manager API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "userToken", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "taskId", "value": "" },
+    { "key": "userId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}" },
+            "url": "{{baseUrl}}/api/auth/register"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('registered', () => pm.response.code === 201);", "pm.collectionVariables.set('userToken', pm.response.json().token);"] } }]
+        },
+        {
+          "name": "Login user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('logged in', () => pm.response.code === 200);", "pm.collectionVariables.set('userToken', pm.response.json().token);"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "Create task",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Ship API\",\n  \"description\": \"Finish the task manager backend\",\n  \"priority\": \"high\",\n  \"status\": \"in-progress\"\n}" },
+            "url": "{{baseUrl}}/api/tasks"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('created', () => pm.response.code === 201);", "pm.collectionVariables.set('taskId', pm.response.json()._id);"] } }]
+        },
+        {
+          "name": "List tasks with filtering sorting pagination",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }], "url": "{{baseUrl}}/api/tasks?status=in-progress&priority=high&search=API&sort=-createdAt&page=1&limit=10" }
+        },
+        {
+          "name": "Task statistics",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }], "url": "{{baseUrl}}/api/tasks/stats" }
+        },
+        {
+          "name": "Update task",
+          "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"status\":\"done\"}" }, "url": "{{baseUrl}}/api/tasks/{{taskId}}" }
+        },
+        {
+          "name": "Delete task",
+          "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }], "url": "{{baseUrl}}/api/tasks/{{taskId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Admin overview",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/api/admin/overview" }
+        },
+        {
+          "name": "List users",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/api/admin/users" }
+        },
+        {
+          "name": "List all tasks",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/api/admin/tasks" }
+        },
+        {
+          "name": "Update user role",
+          "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"role\":\"admin\"}" }, "url": "{{baseUrl}}/api/admin/users/{{userId}}/role" }
+        }
+      ]
+    }
+  ]
+}
